@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <style>
+      .box{stroke:#444;stroke-width:1.4;rx:10}
+      .t{font-size:15px;font-weight:bold;fill:#111}
+      .s{font-size:12.5px;fill:#333}
+      .tag{font-size:11px;font-weight:bold;fill:#fff}
+      .ln{stroke:#444;stroke-width:1.6;fill:none;marker-end:url(#a)}
+      .dash{stroke:#888;stroke-width:1.4;fill:none;stroke-dasharray:6 4;marker-end:url(#a)}
+      .h{font-size:13px;font-weight:bold;fill:#666;letter-spacing:1px}
+    </style>
+  </defs>
+  <rect width="1280" height="720" fill="#fff"/>
+  <text x="640" y="34" text-anchor="middle" font-size="22" font-weight="bold" fill="#111">Real-Time Chat Moderation: architecture (inference path)</text>
+
+  <!-- runtime frame -->
+  <rect x="200" y="62" width="1060" height="430" fill="#f6f8fb" stroke="#9aa5b1" stroke-dasharray="5 4" rx="14"/>
+  <text x="215" y="84" class="h">RUNS ON CPU ONLY: app.py (Python + PyTorch), Colab VM or laptop, no GPU</text>
+
+  <!-- user -->
+  <rect x="20" y="210" width="160" height="110" class="box" fill="#fff3d6"/>
+  <text x="100" y="240" text-anchor="middle" class="t">User (browser)</text>
+  <text x="100" y="262" text-anchor="middle" class="s">types a chat</text>
+  <text x="100" y="278" text-anchor="middle" class="s">message</text>
+  <text x="100" y="300" text-anchor="middle" class="s">Gradio web UI</text>
+
+  <!-- preprocessing -->
+  <rect x="225" y="120" width="210" height="140" class="box" fill="#e8eefc"/>
+  <rect x="225" y="120" width="34" height="20" rx="4" fill="#5b8def"/><text x="242" y="134" text-anchor="middle" class="tag">B</text>
+  <text x="330" y="160" text-anchor="middle" class="t">Regex normalize</text>
+  <text x="235" y="182" class="s">• Turkish lowercase (I→ı, İ→i)</text>
+  <text x="235" y="199" class="s">• URL / @USER / # removal</text>
+  <text x="235" y="216" class="s">• leetspeak 4→a 3→e 0→o $→s</text>
+  <text x="235" y="233" class="s">• a.p.t.a.l → aptal, aaa → a</text>
+  <text x="235" y="250" class="s">• ş→s ç→c ğ→g ö→o ü→u ı→i</text>
+
+  <rect x="225" y="300" width="210" height="100" class="box" fill="#e8eefc"/>
+  <text x="330" y="330" text-anchor="middle" class="t">Light normalize</text>
+  <text x="235" y="352" class="s">URL / @USER removal, long</text>
+  <text x="235" y="369" class="s">repeats cut; keeps case and</text>
+  <text x="235" y="386" class="s">Turkish chars for BERTurk</text>
+
+  <!-- models -->
+  <g>
+    <rect x="490" y="100" width="330" height="62" class="box" fill="#eef0f2"/>
+    <rect x="490" y="100" width="34" height="20" rx="4" fill="#5b8def"/><text x="507" y="114" text-anchor="middle" class="tag">B</text>
+    <text x="535" y="126" class="t">1 · Lexicon + min. edit distance</text>
+    <text x="535" y="146" class="s">lexicon learned from train set · Levenshtein ≤1/2</text>
+
+    <rect x="490" y="172" width="330" height="62" class="box" fill="#eef0f2"/>
+    <rect x="490" y="172" width="34" height="20" rx="4" fill="#5b8def"/><text x="507" y="186" text-anchor="middle" class="tag">B</text>
+    <text x="535" y="198" class="t">2 · tf-idf + Logistic Regression</text>
+    <text x="535" y="218" class="s">word 1-2 + char 3-5 grams · scikit-learn · FP64</text>
+
+    <rect x="490" y="244" width="330" height="62" class="box" fill="#e3f1ee"/>
+    <rect x="490" y="244" width="34" height="20" rx="4" fill="#2a9d8f"/><text x="507" y="258" text-anchor="middle" class="tag">A</text>
+    <text x="535" y="270" class="t">3 · own word2vec → FFN</text>
+    <text x="535" y="290" class="s">skip-gram 100-d, avg · 100-128-64-2 · SGD · FP32</text>
+
+    <rect x="490" y="316" width="330" height="62" class="box" fill="#fbe9e4"/>
+    <rect x="490" y="316" width="34" height="20" rx="4" fill="#e07a5f"/><text x="507" y="330" text-anchor="middle" class="tag">C</text>
+    <text x="535" y="342" class="t">4 · BERTurk fine-tuned · FP32</text>
+    <text x="535" y="362" class="s">dbmdz/bert-base-turkish-cased + linear head</text>
+
+    <rect x="490" y="388" width="330" height="80" class="box" fill="#fde2d8" stroke-width="3"/>
+    <rect x="490" y="388" width="54" height="20" rx="4" fill="#e07a5f"/><text x="517" y="402" text-anchor="middle" class="tag">C + D</text>
+    <text x="555" y="414" class="t">5 · BERTurk · dynamic INT8</text>
+    <text x="555" y="434" class="s">quantize_dynamic(nn.Linear → qint8)</text>
+    <text x="555" y="452" class="s" font-weight="bold">DEFAULT model in the app</text>
+  </g>
+
+  <!-- post-processing -->
+  <rect x="870" y="160" width="170" height="200" class="box" fill="#efe8fb"/>
+  <text x="955" y="190" text-anchor="middle" class="t">Post-processing</text>
+  <text x="880" y="215" class="s">• P(offensive) ≥ 0.5</text>
+  <text x="880" y="232" class="s">   → offensive</text>
+  <text x="880" y="254" class="s">• masking: words found</text>
+  <text x="880" y="271" class="s">   by lexicon (1) → s****,</text>
+  <text x="880" y="288" class="s">   else whole message</text>
+  <text x="880" y="310" class="s">• timer: ms / message,</text>
+  <text x="880" y="327" class="s">   budget 50 ms</text>
+
+  <!-- UI -->
+  <rect x="1080" y="150" width="165" height="220" class="box" fill="#fff3d6"/>
+  <text x="1162" y="180" text-anchor="middle" class="t">Gradio UI</text>
+  <text x="1090" y="205" class="s">• chat with masked</text>
+  <text x="1090" y="222" class="s">   messages</text>
+  <text x="1090" y="244" class="s">• label + confidence</text>
+  <text x="1090" y="266" class="s">• model switch (1-5)</text>
+  <text x="1090" y="288" class="s">• side panel: latency</text>
+  <text x="1090" y="305" class="s">   log of every msg</text>
+  <text x="1090" y="327" class="s">• compare all models</text>
+
+  <!-- arrows -->
+  <path d="M180,250 L222,200" class="ln"/>
+  <path d="M180,280 L222,345" class="ln"/>
+  <path d="M435,170 L487,131" class="ln"/>
+  <path d="M435,190 L487,203" class="ln"/>
+  <path d="M435,210 L487,275" class="ln"/>
+  <path d="M435,350 L487,347" class="ln"/>
+  <path d="M435,365 L487,425" class="ln"/>
+  <path d="M820,131 L867,200" class="ln"/>
+  <path d="M820,203 L867,225" class="ln"/>
+  <path d="M820,275 L867,260" class="ln"/>
+  <path d="M820,347 L867,300" class="ln"/>
+  <path d="M820,428 L867,335" class="ln"/>
+  <path d="M1040,260 L1077,260" class="ln"/>
+  <path d="M1162,370 C1162,560 100,560 100,323" class="ln"/>
+  <text x="640" y="530" text-anchor="middle" class="s" font-style="italic">result shown live in the browser</text>
+
+  <!-- training (offline) -->
+  <text x="20" y="590" class="h">OFFLINE TRAINING (once): train.py + evaluate.py on Google Colab (GPU for BERTurk only)</text>
+  <rect x="20" y="605" width="230" height="80" class="box" fill="#fff"/>
+  <text x="135" y="635" text-anchor="middle" class="t">OffensEval-TR 2020</text>
+  <text x="135" y="657" text-anchor="middle" class="s">train 90% / val 10% /</text>
+  <text x="135" y="673" text-anchor="middle" class="s">official test (held-out)</text>
+  <rect x="300" y="605" width="290" height="80" class="box" fill="#fff"/>
+  <text x="445" y="635" text-anchor="middle" class="t">train.py</text>
+  <text x="445" y="657" text-anchor="middle" class="s">fits models 1-3, fine-tunes 4 (AdamW, 3 ep.),</text>
+  <text x="445" y="673" text-anchor="middle" class="s">quantizes model 4 → model 5</text>
+  <rect x="640" y="605" width="270" height="80" class="box" fill="#fff"/>
+  <text x="775" y="635" text-anchor="middle" class="t">evaluate.py</text>
+  <text x="775" y="657" text-anchor="middle" class="s">same test set: macro-F1, size MB,</text>
+  <text x="775" y="673" text-anchor="middle" class="s">CPU latency (mean of 200 runs)</text>
+  <rect x="960" y="605" width="285" height="80" class="box" fill="#fff"/>
+  <text x="1102" y="635" text-anchor="middle" class="t">artifacts/ → Hugging Face Hub</text>
+  <text x="1102" y="657" text-anchor="middle" class="s">weights not in GitHub; app.py</text>
+  <text x="1102" y="673" text-anchor="middle" class="s">downloads them (MODEL_REPO)</text>
+  <path d="M250,645 L297,645" class="ln"/>
+  <path d="M590,645 L637,645" class="ln"/>
+  <path d="M910,645 L957,645" class="ln"/>
+  <path d="M1102,605 L1102,500" class="dash"/>
+</svg>
