@@ -1,0 +1,121 @@
+{
+  "hardware": "Intel(R) Xeon(R) CPU @ 2.00GHz, 2 CPU threads, torch 2.14.1+cu130, no GPU",
+  "test": "test: 3528 messages, offensive=716 (20.3%)",
+  "rows": [
+    {
+      "key": "lexicon",
+      "model": "Lexicon + edit distance",
+      "area": "B",
+      "macro_f1": 0.604966634048721,
+      "f1_offensive": 0.38819095477386933,
+      "recall_offensive": 0.43156424581005587,
+      "accuracy": 0.7239229024943311,
+      "size_mb": 0.00200653076171875,
+      "latency_ms": 0.11571372500384314,
+      "latency_p95_ms": 0.275026850181348,
+      "meets_budget": true,
+      "confusion": [
+        [
+          2245,
+          567
+        ],
+        [
+          407,
+          309
+        ]
+      ]
+    },
+    {
+      "key": "tfidf",
+      "model": "tf-idf + LogReg",
+      "area": "B",
+      "macro_f1": 0.771085059536794,
+      "f1_offensive": 0.6356696738376127,
+      "recall_offensive": 0.6396648044692738,
+      "accuracy": 0.8511904761904762,
+      "size_mb": 1.9415826797485352,
+      "latency_ms": 2.1434006700008013,
+      "latency_p95_ms": 2.5982932500824063,
+      "meets_budget": true,
+      "confusion": [
+        [
+          2545,
+          267
+        ],
+        [
+          258,
+          458
+        ]
+      ]
+    },
+    {
+      "key": "w2v_ffn",
+      "model": "word2vec + FFN",
+      "area": "A",
+      "macro_f1": 0.6661234900855382,
+      "f1_offensive": 0.5135699373695198,
+      "recall_offensive": 0.6871508379888268,
+      "accuracy": 0.735827664399093,
+      "size_mb": 11.846290588378906,
+      "latency_ms": 0.4604374500013364,
+      "latency_p95_ms": 0.7279340999616578,
+      "meets_budget": true,
+      "confusion": [
+        [
+          2104,
+          708
+        ],
+        [
+          224,
+          492
+        ]
+      ]
+    },
+    {
+      "key": "bert_fp32",
+      "model": "BERTurk FP32",
+      "area": "C",
+      "macro_f1": 0.8157105161218796,
+      "f1_offensive": 0.7092008059100067,
+      "recall_offensive": 0.7374301675977654,
+      "accuracy": 0.8772675736961452,
+      "size_mb": 421.99999237060547,
+      "latency_ms": 137.19280622000042,
+      "latency_p95_ms": 229.27229584994356,
+      "meets_budget": false,
+      "confusion": [
+        [
+          2567,
+          245
+        ],
+        [
+          188,
+          528
+        ]
+      ]
+    },
+    {
+      "key": "bert_int8",
+      "model": "BERTurk INT8 (quantized)",
+      "area": "C + D",
+      "macro_f1": 0.8171508224362911,
+      "f1_offensive": 0.7091412742382271,
+      "recall_offensive": 0.7150837988826816,
+      "accuracy": 0.8809523809523809,
+      "size_mb": 177.41728019714355,
+      "latency_ms": 58.917688929989254,
+      "latency_p95_ms": 109.57477340008379,
+      "meets_budget": false,
+      "confusion": [
+        [
+          2596,
+          216
+        ],
+        [
+          204,
+          512
+        ]
+      ]
+    }
+  ]
+}
